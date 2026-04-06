@@ -13,6 +13,7 @@ use App\Models\CupTie;
 use App\Models\Game;
 use App\Models\GameMatch;
 use App\Models\GamePlayer;
+use App\Models\GameStanding;
 use App\Models\PlayerSuspension;
 use App\Modules\Match\Services\ExtraTimeAndPenaltyService;
 use App\Modules\Match\Services\MatchResimulationService;
@@ -52,6 +53,10 @@ class ShowLiveMatch
         if (! $animationSeen) {
             session()->put($sessionKey, true);
         }
+
+        // Load team form from standings (for match summary at full time)
+        $homeStanding = $this->getTeamStanding($game, $playerMatch->home_team_id, $playerMatch->competition_id);
+        $awayStanding = $this->getTeamStanding($game, $playerMatch->away_team_id, $playerMatch->competition_id);
 
         // Determine if this is a knockout match (cup tie) that could go to ET
         $isKnockout = $playerMatch->cup_tie_id !== null;
@@ -331,6 +336,35 @@ class ShowLiveMatch
             'goalCounterAttack' => __('commentary.goal_counter_attack'),
             'goalPossession' => __('commentary.goal_possession'),
             'goalDirect' => __('commentary.goal_direct'),
+            // Match summary templates
+            'summaryOpeningHomeWin' => __('match_summary.opening_home_win'),
+            'summaryOpeningAwayWin' => __('match_summary.opening_away_win'),
+            'summaryOpeningBlowout' => __('match_summary.opening_blowout'),
+            'summaryOpeningDraw' => __('match_summary.opening_draw'),
+            'summaryOpeningGoalless' => __('match_summary.opening_goalless'),
+            'summaryOpeningNarrowWin' => __('match_summary.opening_narrow_win'),
+            'summaryOpeningExtraTime' => __('match_summary.opening_extra_time'),
+            'summaryOpeningPenalties' => __('match_summary.opening_penalties'),
+            'summaryOpeningCupWin' => __('match_summary.opening_cup_win'),
+            'summaryOpeningCupDraw' => __('match_summary.opening_cup_draw'),
+            'summaryOpeningHighStakesWin' => __('match_summary.opening_high_stakes_win'),
+            'summaryOpeningHighStakesChampion' => __('match_summary.opening_high_stakes_champion'),
+            'summaryGoalsFirstHalfOnly' => __('match_summary.goals_first_half_only'),
+            'summaryGoalsSecondHalfOnly' => __('match_summary.goals_second_half_only'),
+            'summaryGoalsBothHalves' => __('match_summary.goals_both_halves'),
+            'summaryGoalsSingleScorer' => __('match_summary.goals_single_scorer'),
+            'summaryGoalsSingleScorerDraw' => __('match_summary.goals_single_scorer_draw'),
+            'summaryComeback' => __('match_summary.comeback'),
+            'summaryRedCardSingle' => __('match_summary.red_card_single'),
+            'summaryRedCardsMultiple' => __('match_summary.red_cards_multiple'),
+            'summaryDominantFirstHalf' => __('match_summary.dominant_first_half'),
+            'summaryDominantSecondHalf' => __('match_summary.dominant_second_half'),
+            'summaryPenaltyGoalNote' => __('match_summary.penalty_goal_note'),
+            'summaryOwnGoalNote' => __('match_summary.own_goal_note'),
+            'summaryFormLosingStreak' => __('match_summary.form_losing_streak'),
+            'summaryFormWinningStreak' => __('match_summary.form_winning_streak'),
+            'summaryFormWinless' => __('match_summary.form_winless'),
+            'summaryMvpClosing' => __('match_summary.mvp_closing'),
         ];
 
         return view('live-match', [
@@ -395,6 +429,10 @@ class ShowLiveMatch
             'computeSlotsUrl' => route('game.lineup.computeSlots', $game->id),
             'narrativeTemplates' => $narrativeTemplates,
             'animationSeen' => $animationSeen,
+            'homeForm' => $homeStanding?->form ? str_split($homeStanding->form) : [],
+            'awayForm' => $awayStanding?->form ? str_split($awayStanding->form) : [],
+            'competitionRole' => $playerMatch->competition->role,
+            'competitionName' => __($playerMatch->competition->name),
         ]);
     }
 
@@ -431,6 +469,27 @@ class ShowLiveMatch
         }
 
         return $data;
+    }
+
+    /**
+     * Get a team's league standing, falling back to primary league for cup matches.
+     */
+    private function getTeamStanding(Game $game, string $teamId, string $competitionId): ?GameStanding
+    {
+        $standing = GameStanding::where('game_id', $game->id)
+            ->where('competition_id', $competitionId)
+            ->where('team_id', $teamId)
+            ->first();
+
+        // Fall back to primary league standing for cup matches
+        if (!$standing && $competitionId !== $game->competition_id) {
+            $standing = GameStanding::where('game_id', $game->id)
+                ->where('competition_id', $game->competition_id)
+                ->where('team_id', $teamId)
+                ->first();
+        }
+
+        return $standing;
     }
 
     /**

@@ -423,6 +423,11 @@ export function createMatchSimulation(ctx) {
         if (typeof state._cacheEvents === 'function') {
             state._cacheEvents();
         }
+
+        // Generate match summary report
+        if (typeof state._generateMatchSummary === 'function') {
+            state.matchSummary = state._generateMatchSummary();
+        }
     }
 
     // =========================================================================
