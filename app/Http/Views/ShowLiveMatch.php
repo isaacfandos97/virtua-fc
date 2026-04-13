@@ -364,6 +364,12 @@ class ShowLiveMatch
             'summaryFormLosingStreak' => __('match_summary.form_losing_streak'),
             'summaryFormWinningStreak' => __('match_summary.form_winning_streak'),
             'summaryFormWinless' => __('match_summary.form_winless'),
+            'summaryPossessionUpset' => __('match_summary.possession_upset'),
+            'summaryPossessionDominanceLost' => __('match_summary.possession_dominance_lost'),
+            'summaryPossessionDominanceDraw' => __('match_summary.possession_dominance_draw'),
+            'summaryShotDominance' => __('match_summary.shot_dominance'),
+            'summaryShotUpset' => __('match_summary.shot_upset'),
+            'summaryEvenContest' => __('match_summary.even_contest'),
             'summaryMvpClosing' => __('match_summary.mvp_closing'),
         ];
 

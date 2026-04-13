@@ -419,14 +419,14 @@ export function createMatchSimulation(ctx) {
             state.recalculatePlayerRatings();
         }
 
-        // Cache events so page refreshes show the same feed
-        if (typeof state._cacheEvents === 'function') {
-            state._cacheEvents();
-        }
-
         // Generate match summary report
         if (typeof state._generateMatchSummary === 'function') {
             state.matchSummary = state._generateMatchSummary();
+        }
+
+        // Cache events (after summary) so page refreshes show the same feed
+        if (typeof state._cacheEvents === 'function') {
+            state._cacheEvents();
         }
     }
 

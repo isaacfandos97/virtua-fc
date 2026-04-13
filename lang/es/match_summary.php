@@ -79,15 +79,15 @@ return [
     // =========================================================================
     'goals_first_half_only' => [
         'Los goles llegaron en la primera mitad gracias a :scorers.',
-        ':scorers marcaron en la primera parte.',
+        'Goles de :scorers en la primera parte.',
     ],
     'goals_second_half_only' => [
         'Los goles llegaron en la segunda mitad gracias a :scorers.',
-        ':scorers marcaron en la segunda parte para decidir el encuentro.',
+        'Goles de :scorers en la segunda parte para decidir el encuentro.',
     ],
     'goals_both_halves' => [
         ':first_half_scorers en la primera parte, y :second_half_scorers en la segunda.',
-        ':first_half_scorers abrieron la lata, y :second_half_scorers sentenciaron en el segundo tiempo.',
+        'Goles en ambas partes: :first_half_scorers antes del descanso y :second_half_scorers en la reanudación.',
     ],
     'goals_single_scorer' => [
         'Gol de :scorer para decidir el encuentro.',
@@ -140,6 +140,36 @@ return [
     'form_winless' => [
         ':el_team sigue sin ganar, ya van :count partidos sin victoria.',
         ':el_team no levanta cabeza, acumula :count encuentros sin ganar.',
+    ],
+
+    // =========================================================================
+    // Game description (possession, shots, character)
+    // =========================================================================
+    'possession_upset' => [
+        'A pesar de tener solo un :poss% de posesión, :el_winner supo aprovechar sus oportunidades.',
+        ':el_winner ganó sin necesitar el balón, con apenas un :poss% de posesión.',
+        'Eficacia letal :del_winner, que con solo un :poss% de posesión se llevó el triunfo.',
+    ],
+    'possession_dominance_lost' => [
+        ':el_dominant tuvo el balón (:poss%) pero no pudo traducirlo en victoria.',
+        'De nada sirvió el :poss% de posesión :del_dominant.',
+        ':el_dominant dominó con el balón (:poss%) pero se fue sin premio.',
+    ],
+    'possession_dominance_draw' => [
+        ':el_dominant acaparó el balón (:poss%) pero no logró romper la igualdad.',
+        'A pesar del :poss% de posesión :del_dominant, el marcador no se movió a su favor.',
+    ],
+    'shot_dominance' => [
+        ':el_winner fue muy superior en ocasiones de gol y mereció la victoria.',
+        'Dominio claro :del_winner, que generó muchas más ocasiones que su rival.',
+    ],
+    'shot_upset' => [
+        ':el_loser generó más ocasiones pero :el_winner fue más contundente.',
+        'A contracorriente, :el_winner se llevó la victoria pese a generar menos peligro.',
+    ],
+    'even_contest' => [
+        'Partido igualado de principio a fin entre ambos equipos.',
+        'Equilibrio total sobre el césped con posesiones muy repartidas.',
     ],
 
     // =========================================================================

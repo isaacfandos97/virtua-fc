@@ -26,13 +26,24 @@ function pickTemplate(templates, replacements) {
 
 /**
  * Apply all placeholder replacements to a string.
+ * Keys are sorted longest-first to prevent partial matches
+ * (e.g. `:home` replacing inside `:home_scorer`).
  */
 function applyReplacements(text, replacements) {
     let result = text;
-    for (const [placeholder, value] of Object.entries(replacements)) {
-        result = result.replaceAll(placeholder, value);
+    const keys = Object.keys(replacements).sort((a, b) => b.length - a.length);
+    for (const key of keys) {
+        result = result.replaceAll(key, replacements[key]);
     }
     return result;
+}
+
+/**
+ * Capitalize the first letter of a string.
+ */
+function capitalizeFirst(text) {
+    if (!text) return text;
+    return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 /**
@@ -103,6 +114,8 @@ function countTrailingStreak(formArray, char) {
  * @param {Array} config.homeForm - ['W', 'D', 'L', ...] pre-match form
  * @param {Array} config.awayForm
  * @param {string|null} config.tournamentResultType
+ * @param {number} config.homePossession - Home possession percentage (0-100)
+ * @param {number} config.awayPossession - Away possession percentage (0-100)
  * @returns {string} The composed summary paragraph
  */
 export function generateMatchSummary(config) {
@@ -123,6 +136,7 @@ export function generateMatchSummary(config) {
         competitionName,
         homeForm, awayForm,
         tournamentResultType,
+        homePossession, awayPossession,
     } = config;
 
     // Build article-aware name forms
@@ -200,7 +214,7 @@ export function generateMatchSummary(config) {
     // -----------------------------------------------------------------
     sentences.push(buildOpening(t, replacements, {
         isDraw, isGoalless, isBlowout, isNarrowWin,
-        isCup, isHighStakes, isChampion,
+        isCup, isKnockout, isHighStakes, isChampion,
         hasExtraTime, penaltyResult,
         winnerId, homeTeamId,
     }));
@@ -226,7 +240,19 @@ export function generateMatchSummary(config) {
     if (keyMoment) sentences.push(keyMoment);
 
     // -----------------------------------------------------------------
-    // Step 4: Form / streak (league only)
+    // Step 4: Game description (possession, shots, upsets)
+    // -----------------------------------------------------------------
+    const gameDesc = buildGameDescription(t, replacements, {
+        allEvents, homeTeamId,
+        homePossession, awayPossession,
+        totalHome, totalAway, isDraw,
+        winnerId,
+        homeForms, awayForms,
+    });
+    if (gameDesc) sentences.push(gameDesc);
+
+    // -----------------------------------------------------------------
+    // Step 5: Form / streak (league only)
     // -----------------------------------------------------------------
     if (!isCup) {
         const formComment = buildFormComment(t, {
@@ -240,7 +266,7 @@ export function generateMatchSummary(config) {
     }
 
     // -----------------------------------------------------------------
-    // Step 5: MVP closing (~70% of the time)
+    // Step 6: MVP closing (~70% of the time)
     // -----------------------------------------------------------------
     if (mvpPlayerName && t.summaryMvpClosing && Math.random() < 0.7) {
         sentences.push(pickTemplate(t.summaryMvpClosing, {
@@ -249,7 +275,7 @@ export function generateMatchSummary(config) {
         }));
     }
 
-    return sentences.filter(Boolean).join(' ');
+    return sentences.filter(Boolean).map(capitalizeFirst).join(' ');
 }
 
 // ---------------------------------------------------------------------------
@@ -259,7 +285,7 @@ export function generateMatchSummary(config) {
 function buildOpening(t, replacements, ctx) {
     const {
         isDraw, isGoalless, isBlowout, isNarrowWin,
-        isCup, isHighStakes, isChampion,
+        isCup, isKnockout, isHighStakes, isChampion,
         hasExtraTime, penaltyResult,
         winnerId, homeTeamId,
     } = ctx;
@@ -284,12 +310,12 @@ function buildOpening(t, replacements, ctx) {
         return pickTemplate(t.summaryOpeningHighStakesWin, replacements);
     }
 
-    // Priority 5: Cup win (non-high-stakes)
-    if (isCup && winnerId && t.summaryOpeningCupWin) {
+    // Priority 5: Cup knockout win (non-high-stakes)
+    if (isCup && isKnockout && winnerId && t.summaryOpeningCupWin) {
         return pickTemplate(t.summaryOpeningCupWin, replacements);
     }
 
-    // Priority 6: Cup draw (group stage only)
+    // Priority 6: Cup draw
     if (isCup && isDraw && t.summaryOpeningCupDraw) {
         return pickTemplate(t.summaryOpeningCupDraw, replacements);
     }
@@ -466,6 +492,80 @@ function buildKeyMoment(t, replacements, ctx) {
         if (firstHalf.length === 0 && secondHalf.length >= 2 && t.summaryDominantSecondHalf) {
             return pickTemplate(t.summaryDominantSecondHalf, replacements);
         }
+    }
+
+    return '';
+}
+
+function buildGameDescription(t, replacements, ctx) {
+    const {
+        allEvents, homeTeamId,
+        homePossession, awayPossession,
+        totalHome, totalAway, isDraw,
+        winnerId,
+        homeForms, awayForms,
+    } = ctx;
+
+    // Count shots from atmosphere events
+    const homeShotsOn = allEvents.filter(e => e.type === 'shot_on_target' && e.teamId === homeTeamId).length;
+    const awayShotsOn = allEvents.filter(e => e.type === 'shot_on_target' && e.teamId !== homeTeamId).length;
+    const homeShotsOff = allEvents.filter(e => e.type === 'shot_off_target' && e.teamId === homeTeamId).length;
+    const awayShotsOff = allEvents.filter(e => e.type === 'shot_off_target' && e.teamId !== homeTeamId).length;
+    const homeShots = homeShotsOn + homeShotsOff;
+    const awayShots = awayShotsOn + awayShotsOff;
+
+    const winnerIsHome = winnerId === homeTeamId;
+    const winnerPoss = winnerId ? (winnerIsHome ? homePossession : awayPossession) : 0;
+    const loserPoss = winnerId ? (winnerIsHome ? awayPossession : homePossession) : 0;
+    const winnerShots = winnerId ? (winnerIsHome ? homeShots : awayShots) : 0;
+    const loserShots = winnerId ? (winnerIsHome ? awayShots : homeShots) : 0;
+
+    const dominantForms = homePossession >= awayPossession ? homeForms : awayForms;
+    const dominantPoss = Math.max(homePossession, awayPossession);
+
+    const teamReplacements = {
+        ...replacements,
+        ':el_dominant': dominantForms.el,
+        ':del_dominant': dominantForms.del,
+        ':dominant': dominantForms.name,
+        ':poss': String(Math.round(dominantPoss)),
+        ':home_poss': String(Math.round(homePossession)),
+        ':away_poss': String(Math.round(awayPossession)),
+    };
+
+    // Priority 1: Upset — team with much less possession wins decisively
+    if (winnerId && !isDraw && winnerPoss < 40 && loserPoss >= 55 && t.summaryPossessionUpset) {
+        return pickTemplate(t.summaryPossessionUpset, teamReplacements);
+    }
+
+    // Priority 2: Dominant possession but lost or drew
+    if (!isDraw && winnerId && loserPoss >= 60 && t.summaryPossessionDominanceLost) {
+        return pickTemplate(t.summaryPossessionDominanceLost, {
+            ...teamReplacements,
+            ':el_dominant': (winnerId === homeTeamId ? awayForms : homeForms).el,
+            ':dominant': (winnerId === homeTeamId ? awayForms : homeForms).name,
+            ':poss': String(Math.round(loserPoss)),
+        });
+    }
+
+    // Priority 3: Draw with lopsided possession
+    if (isDraw && dominantPoss >= 60 && t.summaryPossessionDominanceDraw) {
+        return pickTemplate(t.summaryPossessionDominanceDraw, teamReplacements);
+    }
+
+    // Priority 4: Shot dominance — winner had way more shots (2x+)
+    if (winnerId && !isDraw && winnerShots >= loserShots * 2 && winnerShots >= 4 && t.summaryShotDominance) {
+        return pickTemplate(t.summaryShotDominance, teamReplacements);
+    }
+
+    // Priority 5: Smash and grab — winner had fewer shots
+    if (winnerId && !isDraw && loserShots >= winnerShots * 2 && loserShots >= 4 && t.summaryShotUpset) {
+        return pickTemplate(t.summaryShotUpset, teamReplacements);
+    }
+
+    // Priority 6: Even contest
+    if (isDraw && Math.abs(homePossession - awayPossession) < 10 && t.summaryEvenContest) {
+        return pickTemplate(t.summaryEvenContest, teamReplacements);
     }
 
     return '';

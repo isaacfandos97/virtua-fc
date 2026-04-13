@@ -143,6 +143,36 @@ return [
     ],
 
     // =========================================================================
+    // Game description (possession, shots, character)
+    // =========================================================================
+    'possession_upset' => [
+        'Despite having only :poss% possession, :winner took their chances ruthlessly.',
+        ':winner won without needing the ball, managing just :poss% possession.',
+        'Clinical from :winner, who claimed victory with only :poss% possession.',
+    ],
+    'possession_dominance_lost' => [
+        ':dominant had the ball (:poss%) but couldn\'t turn it into a win.',
+        ':poss% possession for :dominant counted for nothing in the end.',
+        ':dominant dominated possession (:poss%) but left empty-handed.',
+    ],
+    'possession_dominance_draw' => [
+        ':dominant monopolised the ball (:poss%) but couldn\'t break the deadlock.',
+        'Despite :poss% possession for :dominant, the scoreline didn\'t shift in their favour.',
+    ],
+    'shot_dominance' => [
+        ':winner were far superior in chances created and deserved the win.',
+        'Clear dominance from :winner, who created far more chances than their opponent.',
+    ],
+    'shot_upset' => [
+        ':loser created more chances but :winner were more clinical.',
+        'Against the run of play, :winner took the win despite creating fewer opportunities.',
+    ],
+    'even_contest' => [
+        'An evenly matched contest from start to finish.',
+        'A balanced affair with possession evenly shared between both sides.',
+    ],
+
+    // =========================================================================
     // Annotations
     // =========================================================================
     'penalty_goal_note' => 'pen.',
