@@ -518,7 +518,7 @@
                         <div class="space-y-1 max-h-96 overflow-y-auto" id="events-feed">
 
                             {{-- Match summary (full-time event in the feed) --}}
-                            <template x-if="matchSummary && phase === 'full_time'">
+                            <template x-if="matchSummary && phase === 'full_time' && !_skippingToEnd">
                                 <div class="px-3 py-3 border-l-2 border-l-transparent">
                                     <div class="flex gap-2 items-baseline w-full">
                                         <span class="font-heading font-bold text-xs text-text-muted w-8 text-right shrink-0 tabular-nums">90'</span>
