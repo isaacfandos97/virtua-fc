@@ -86,7 +86,7 @@ return [
         ':scorers scored in the second half to decide the match.',
     ],
     'goals_both_halves' => [
-        ':first_half_scorers in the first half, and :second_half_scorers in the second.',
+        'Goals from :first_half_scorers in the first half and :second_half_scorers in the second.',
         ':first_half_scorers opened the scoring, and :second_half_scorers sealed it in the second half.',
     ],
     'goals_single_scorer' => [

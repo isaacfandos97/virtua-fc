@@ -86,7 +86,7 @@ return [
         'Goles de :scorers en la segunda parte para decidir el encuentro.',
     ],
     'goals_both_halves' => [
-        ':first_half_scorers en la primera parte, y :second_half_scorers en la segunda.',
+        'Goles de :first_half_scorers en la primera parte y de :second_half_scorers en la segunda.',
         'Goles en ambas partes: :first_half_scorers antes del descanso y :second_half_scorers en la reanudación.',
     ],
     'goals_single_scorer' => [
