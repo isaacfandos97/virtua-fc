@@ -10,7 +10,7 @@ final class PrimeraFederacionB implements TeamColorProvider
             // TODO: assign real kit colors
             'Real Murcia CF' => [
                 'pattern' => 'solid',
-                'primary' => 'blue-600',
+                'primary' => 'red-800',
                 'secondary' => 'white',
                 'number' => 'white',
             ],
